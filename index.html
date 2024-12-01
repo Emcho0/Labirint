@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Labirint</title>
+    <link href="index.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
+</head>
+
+<body onload="createMaze()">
+    <h1>Labirint</h1>
+    <select id="levelselect">
+        <option value="1">Nivo 1</option>
+        <option value="2">Nivo 2</option>
+        <option value="3">Nivo 3</option>
+    </select>
+
+    <div id="timer" style="position: fixed; top: 10px; right: 10px; font-family: Varela Round; color: white; font-size: 30px;">Vrijeme: <span id="time">35</span> sekundi</div>
+
+    <div id="maze-container">
+        <img src="player.png" id="player" width="50px" height="50px" alt="player">
+        <img src="finish.png" id="finish" alt="finish" width="50px" height="50px">
+    </div>
+
+    <script>
+        let level1 = [
+            [1, 0, 1, 0],
+            [1, 1, 1, 1],
+            [1, 0, 1, 0],
+            [1, 0, 1, 1]
+        ]
+
+        let level2 = [
+            [1, 1, 1, 0, 1, 0],
+            [1, 0, 1, 1, 1, 1],
+            [0, 0, 1, 0, 0, 0],
+            [1, 0, 1, 1, 1, 1],
+            [1, 0, 1, 0, 1, 0],
+            [1, 1, 1, 0, 1, 1]
+        ]
+        let level3 = [
+            [1, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+            [1, 0, 0, 1, 0, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 1, 1, 1, 1, 1],
+            [1, 0, 1, 1, 1, 1, 0, 1, 0, 1],
+            [1, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+            [1, 1, 1, 0, 1, 0, 1, 1, 0, 1],
+            [1, 0, 0, 0, 1, 0, 0, 1, 0, 1],
+            [1, 0, 1, 1, 1, 0, 1, 1, 1, 1],
+            [1, 1, 1, 0, 0, 0, 1, 0, 0, 1]
+        ]
+
+
+        let mazearray = level1;
+        let Level = document.getElementById("levelselect");
+        Level.addEventListener("change", function () {
+            let level = Level.value;
+            if (level == 1) {
+                mazearray = level1;
+            }
+            if (level == 2) {
+                mazearray = level2;
+            }
+            if (level == 3) {
+                mazearray = level3;
+            }
+            maze.innerHTML =
+                `<img src="player.png" id="player" width="50px" height="50px" alt="player">
+        <img src="finish.png" id="finish" alt="finish" width="50px" height="50px">`
+            createMaze();
+        })
+
+        let maze = document.getElementById("maze-container");
+        let player = document.getElementById("player");
+        let finish = document.getElementById("finish");
+        let currentLevel = 1;
+
+
+        let timeLeft = 35; // Vrijeme u sekundama
+        let timer = document.getElementById("time");
+        let countdownInterval;
+
+        function countdown() {
+    timer.innerText = timeLeft;
+    countdownInterval = setInterval(function () {
+        timeLeft--;
+        if (timeLeft >= 0) {
+            timer.innerText = timeLeft;
+        } else {
+            clearInterval(countdownInterval);
+            alert("Vrijeme je isteklo! Igra je gotova.");
+            resetGame();
+            window.close(); // Close the game window
+        }
+    }, 1000);
+}
+
+
+        function resetGame() {
+            clearInterval(countdownInterval);
+            timeLeft = 35;
+            timer.innerText = timeLeft;
+            currentLevel = 1; // Postavljanje na prvi nivo
+            Level.value = currentLevel; // Postavljanje vrijednosti select elementa na prvi nivo
+            setPlayerPosition(0, 0);
+            setFinishPosition(0, 0);
+            createMaze();
+            countdown();
+        }
+
+
+        document.addEventListener("DOMContentLoaded", function () {
+            countdown();
+        });
+
+        let playerX = 0;
+        let playerY = 0;
+
+        function setPlayerPosition(x, y) {
+            player.style.top = x + "px";
+            player.style.left = y + "px";
+            playerX = x;
+            playerY = y;
+        }
+
+        function setFinishPosition(x, y) {
+            finish.style.bottom = x + "px";
+            finish.style.right = y + "px";
+        }
+
+        function createMaze() {
+            let selectedMaze;
+            if (currentLevel === 1) {
+                selectedMaze = level1;
+            } else if (currentLevel === 2) {
+                selectedMaze = level2;
+            } else if (currentLevel === 3) {
+                selectedMaze = level3;
+            }
+
+            maze.innerHTML = `<img src="player.png" id="player" width="50px" height="50px" alt="player">
+        <img src="finish.png" id="finish" alt="finish" width="50px" height="50px">`
+
+            for (let i = 0; i < selectedMaze.length; i++) {
+                let row = document.createElement("div");
+                row.classList.add("row");
+
+                for (let j = 0; j < selectedMaze[i].length; j++) {
+                    let cell = document.createElement("div");
+                    cell.classList.add("cell");
+
+                    if (selectedMaze[i][j] === 0) {
+                        cell.classList.add("wall");
+                    }
+                    row.appendChild(cell);
+
+                    if (i === playerX && j === playerY) {
+                        selectedMaze[i][j] = 2;
+                    }
+                }
+                maze.appendChild(row);
+            }
+
+            setPlayerPosition(playerX, playerY);
+            setFinishPosition(0, 0);
+        }
+
+        function getPlayerPosition() {
+            let position = [-1, -1];
+            for (let i = 0; i < mazearray.length; i++) {
+                for (let j = 0; j < mazearray[i].length; j++) {
+                    if (mazearray[i][j] === 2) {
+                        position[0] = i;
+                        position[1] = j;
+                    }
+                }
+            }
+            console.log(position);
+            return position;
+        }
+
+        document.addEventListener("keydown", function (e) {
+  let player = document.getElementById("player");
+  let finish = document.getElementById("finish");
+  let playerLeft = player.offsetLeft;
+  let playerTop = player.offsetTop;
+  let finishLeft = finish.offsetLeft;
+  let finishTop = finish.offsetTop;
+  let playerPosition = getPlayerPosition();
+
+  if (e.key == "ArrowRight" && playerLeft < (mazearray[0].length - 1) * 50 && mazearray[playerPosition[0]][playerPosition[1] + 1] != 0) {
+    playerLeft += 50;
+    player.style.left = playerLeft + "px";
+    mazearray[playerPosition[0]][playerPosition[1]] = 1;
+    mazearray[playerPosition[0]][playerPosition[1] + 1] = 2;
+    playerPosition[1]++;
+  } else if (e.key == "ArrowLeft" && playerLeft > 0 && mazearray[playerPosition[0]][playerPosition[1] - 1] != 0) {
+    playerLeft -= 50;
+    player.style.left = playerLeft + "px";
+    mazearray[playerPosition[0]][playerPosition[1]] = 1;
+    mazearray[playerPosition[0]][playerPosition[1] - 1] = 2;
+    playerPosition[1]--;
+  } else if (e.key == "ArrowUp" && playerTop > 0 && mazearray[playerPosition[0] - 1][playerPosition[1]] != 0) {
+    playerTop -= 50;
+    player.style.top = playerTop + "px";
+    mazearray[playerPosition[0]][playerPosition[1]] = 1;
+    mazearray[playerPosition[0] - 1][playerPosition[1]] = 2;
+    playerPosition[0]--;
+  } else if (e.key == "ArrowDown" && playerTop < (mazearray.length - 1) * 50 && mazearray[playerPosition[0] + 1][playerPosition[1]] != 0) {
+    playerTop += 50;
+    player.style.top = playerTop + "px";
+    mazearray[playerPosition[0]][playerPosition[1]] = 1;
+    mazearray[playerPosition[0] + 1][playerPosition[1]] = 2;
+    playerPosition[0]++;
+  }
+
+  if (playerLeft === finishLeft && playerTop === finishTop) {
+        alert("Čestitamo! Prolazite na sljedeći nivo.");
+        currentLevel++;
+        if (currentLevel > 3) {
+            alert("Čestitamo! Prolazite sve nivoe. Igra je gotova.");
+            resetGame();
+            window.close(); // Close the game window
+            return;
+        }
+        Level.value = currentLevel;
+        mazearray = level1;
+        if (currentLevel === 2) {
+            mazearray = level2;
+        } else if (currentLevel === 3) {
+            mazearray = level3;
+        }
+        createMaze();
+    }
+});
+
+        
+    </script>
+</body>
+</html>
